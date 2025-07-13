@@ -13,16 +13,14 @@ from optuna.visualization import plot_optimization_history, plot_param_importanc
 import optuna.integration
 
 
-# -----------------------------
-# Fixed constants
-# -----------------------------
-pio.renderers.default = "browser" 
+#pio.renderers.default = "browser" 
 
 input_size = 28 * 28
 num_classes = 10
 num_epochs = 20
 batch_size = 1024
 patience = 5
+optuna_seed = 0
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -40,9 +38,7 @@ def get_data_loaders(batch_size):
 
     return train_loader, val_loader, test_loader
 
-# -----------------------------
-# Model definition
-# -----------------------------
+
 class NN(nn.Module):
     def __init__(self, input_size, hidden_sizes, num_classes, dropout_rate):
         super(NN, self).__init__()
@@ -59,9 +55,7 @@ class NN(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-# -----------------------------
-# Evaluation function
-# -----------------------------
+
 def evaluate_loss(loader, model, device, criterion):
     model.eval()
     total_loss = 0
@@ -82,9 +76,7 @@ def evaluate_loss(loader, model, device, criterion):
     avg_loss = total_loss / total_samples
     return avg_loss
 
-# -----------------------------
-# Objective function for Optuna
-# -----------------------------
+
 def objective(trial):
     n_layers = trial.suggest_int("n_layers", 1, 3)
     hidden_sizes = [trial.suggest_int(f"n_units_l{i}", 32, 128, step=16) for i in range(n_layers)]
@@ -149,23 +141,20 @@ def objective(trial):
 
     return best_loss
 
-# -----------------------------
-# Main Execution Block (Windows Safe)
-# -----------------------------
+
 if __name__ == "__main__":
     import torch.multiprocessing
     torch.multiprocessing.freeze_support()
 
-    study = optuna.create_study(direction="minimize", pruner=optuna.pruners.MedianPruner(), sampler=optuna.samplers.TPESampler(seed=70))
+    study = optuna.create_study(direction="minimize", pruner=optuna.pruners.MedianPruner(), sampler=optuna.samplers.TPESampler(seed=optuna_seed))
     study.optimize(objective, n_trials=30)
 
     print("\nBest hyperparameters:", study.best_params)
 
-    # Visualization
-    plot_optimization_history(study).show()
-    plot_param_importances(study).show()
+    fig1 = plot_param_importances(study)
+    fig1.write_image(f"Seed {optuna_seed} Optuna Param Importances.png")
+    print("Saved Optuna plots.")
 
-    # Retrain final model
     best_params = study.best_params
     hidden_sizes = [best_params[f"n_units_l{i}"] for i in range(best_params["n_layers"])]
     model = NN(input_size, hidden_sizes, num_classes, dropout_rate=best_params["dropout_rate"]).to(device)
@@ -232,3 +221,5 @@ if __name__ == "__main__":
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+    plt.savefig(f"Seed {optuna_seed} Training VS Validation Loss Curves.png")
+    print("Saved training vs validation loss plot.")
