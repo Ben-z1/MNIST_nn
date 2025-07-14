@@ -1,0 +1,13 @@
+{
+    "seed": 2,
+    "best_val_loss": 0.08620943957567215,
+    "test_loss": 0.088,
+    "test_accuracy": 0.9735,
+    "best_params": {
+        "n_layers": 1,
+        "n_units_l0": 128,
+        "lr": 0.00243286633544259,
+        "optimizer": "RMSprop",
+        "dropout_rate": 0.32559462340094436
+    }
+}

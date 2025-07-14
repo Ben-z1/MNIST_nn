@@ -1,0 +1,15 @@
+{
+    "seed": 99,
+    "best_val_loss": 0.08968941869338354,
+    "test_loss": 0.0838,
+    "test_accuracy": 0.9762,
+    "best_params": {
+        "n_layers": 3,
+        "n_units_l0": 112,
+        "n_units_l1": 80,
+        "n_units_l2": 128,
+        "lr": 0.003931672468620852,
+        "optimizer": "Adam",
+        "dropout_rate": 0.27165448158294714
+    }
+}
